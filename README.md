@@ -16,7 +16,7 @@ a full web application where you can load file( csv , json , word ,powerpoint , 
 - download the github 
 - Create virtual environment: python -m venv .venv
 - Activate virtual ennvironment: .venv\scripts\activate
-- Install required libraries: pip install -r requirements.txt
+- Install required libraries: pip install -r requirements_flask.txt
 - Replace keys with your own values in example.env
 - configure inside you postgresql the correct extension and activate as show in the file postgresqlinit( extension , link to openai model ... ) i use diskann as extension too , if not enable for you use hnsw and replace in the code 
 - don't forget to have the model openAI one text-embbeding and one GPT ( can be 4.0 ,3.5 ) ... and configure all in the example.env , with the size of the vector 
