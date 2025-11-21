@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Argus Accelerator - PostgreSQL Chat App{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-cloud-download"></i> Load Data from Argus Accelerator</h2>
+        <p class="text-muted">Import data from Azure Cosmos DB via Argus Accelerator</p>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-cloud"></i> Argus Configuration
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="argusdb" class="form-label">Cosmos DB Database</label>
+                        <input type="text" class="form-control" id="argusdb" name="argusdb" value="doc-extracts" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="arguscollection" class="form-label">Collection Name</label>
+                        <input type="text" class="form-control" id="arguscollection" name="arguscollection" value="documents" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="argusurl" class="form-label">Cosmos DB URI</label>
+                        <input type="text" class="form-control" id="argusurl" name="argusurl" placeholder="https://your-account.documents.azure.com:443/" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="arguskey" class="form-label">Cosmos DB Key</label>
+                        <input type="password" class="form-control" id="arguskey" name="arguskey" placeholder="Your Cosmos DB key" required>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-download"></i> Load Data from Argus
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header bg-info text-white">
+                <i class="bi bi-info-circle"></i> About Argus Accelerator
+            </div>
+            <div class="card-body">
+                <p>ARGUS is an Azure-based document processing accelerator that extracts and processes data from various document formats.</p>
+                <p class="mb-0">
+                    <a href="https://github.com/Azure-Samples/ARGUS" target="_blank" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-github"></i> View on GitHub
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

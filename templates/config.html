@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}Configuration - PostgreSQL Chat App{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-gear"></i> Configuration</h2>
+        <p class="text-muted">Manage database and AI settings.</p>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-database"></i> PostgreSQL Settings
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="dbname" class="form-label">Database Name</label>
+                        <input type="text" class="form-control" id="dbname" name="dbname" value="{{ session.get('dbname', config.get('pgdbname', '')) }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="pguser" class="form-label">User</label>
+                        <input type="text" class="form-control" id="pguser" name="pguser" value="{{ session.get('pguser', config.get('pguser', '')) }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="pgpassword" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="pgpassword" name="pgpassword" value="{{ session.get('pgpassword', config.get('pgpassword', '')) }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="pghost" class="form-label">Host</label>
+                        <input type="text" class="form-control" id="pghost" name="pghost" value="{{ session.get('pghost', config.get('pghost', '')) }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="pgport" class="form-label">Port</label>
+                        <input type="text" class="form-control" id="pgport" name="pgport" value="{{ session.get('pgport', config.get('pgport', '')) }}">
+                    </div>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-save"></i> Save Configuration
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header bg-info text-white">
+                <i class="bi bi-robot"></i> Azure OpenAI Settings
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="openai_endpoint" class="form-label">Endpoint</label>
+                        <input type="text" class="form-control" id="openai_endpoint" name="openai_endpoint" value="{{ session.get('openai_endpoint', config.get('openai_endpoint', '')) }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="openai_key" class="form-label">API Key</label>
+                        <input type="password" class="form-control" id="openai_key" name="openai_key" value="{{ session.get('openai_key', config.get('openai_key', '')) }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="openai_version" class="form-label">API Version</label>
+                        <input type="text" class="form-control" id="openai_version" name="openai_version" value="{{ session.get('openai_version', config.get('openai_version', '')) }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="openai_chat_model" class="form-label">Chat Model</label>
+                        <input type="text" class="form-control" id="openai_chat_model" name="openai_chat_model" value="{{ session.get('openai_chat_model', config.get('AZURE_OPENAI_CHAT_MODEL', '')) }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="openai_embeddings_model" class="form-label">Embeddings Model</label>
+                        <select class="form-select" id="openai_embeddings_model" name="openai_embeddings_model">
+                            <option value="text-embedding-ada-002" {% if session.get('openai_embeddings_model') == 'text-embedding-ada-002' %}selected{% endif %}>text-embedding-ada-002</option>
+                            <option value="text-embedding-3-large" {% if session.get('openai_embeddings_model') == 'text-embedding-3-large' %}selected{% endif %}>text-embedding-3-large</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="embeddingssize" class="form-label">Embedding Size</label>
+                        <input type="text" class="form-control" id="embeddingssize" name="embeddingssize" value="{{ session.get('embeddingssize', config.get('embeddingsize', '')) }}">
+                    </div>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-save"></i> Save Configuration
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-warning">
+                <i class="bi bi-tools"></i> Database Operations
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <button class="btn btn-primary w-100" onclick="initializeDb()">
+                            <i class="bi bi-plus-circle"></i> Initialize Database
+                        </button>
+                        <p class="small text-muted mt-2">Create tables and indexes for data and cache</p>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-warning w-100" onclick="clearCache()">
+                            <i class="bi bi-trash"></i> Clear Cache
+                        </button>
+                        <p class="small text-muted mt-2">Clear all cached responses</p>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-danger w-100" onclick="cleanAll()">
+                            <i class="bi bi-x-circle"></i> Delete All Tables
+                        </button>
+                        <p class="small text-muted mt-2">⚠️ Warning: This will delete all data!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function initializeDb() {
+    if (!confirm('Initialize database with required tables and indexes?')) return;
+    try {
+        const response = await fetch('/initialize', { method: 'POST' });
+        const data = await response.json();
+        alert(data.success ? data.message : 'Error: ' + data.error);
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+async function clearCache() {
+    if (!confirm('Clear all cached responses?')) return;
+    try {
+        const response = await fetch('/clear-cache', { method: 'POST' });
+        const data = await response.json();
+        alert(data.success ? data.message : 'Error: ' + data.error);
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+async function cleanAll() {
+    if (!confirm('⚠️ WARNING: This will delete all tables and data. Are you absolutely sure?')) return;
+    if (!confirm('This action cannot be undone. Continue?')) return;
+    try {
+        const response = await fetch('/clean-all', { method: 'POST' });
+        const data = await response.json();
+        alert(data.success ? data.message : 'Error: ' + data.error);
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+</script>
+{% endblock %}

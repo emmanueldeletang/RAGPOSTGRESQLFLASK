@@ -1,0 +1,302 @@
+{% extends "base.html" %}
+
+{% block title %}Chat - PostgreSQL Chat App{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chat-container {
+        height: 70vh;
+        overflow-y: auto;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        padding: 1rem;
+        background-color: white;
+    }
+    .message {
+        margin-bottom: 1rem;
+        padding: 0.75rem;
+        border-radius: 0.375rem;
+    }
+    .user-message {
+        background-color: #e3f2fd;
+        margin-left: 20%;
+    }
+    .assistant-message {
+        background-color: #f5f5f5;
+        margin-right: 20%;
+    }
+    .message-meta {
+        font-size: 0.75rem;
+        color: #6c757d;
+        margin-top: 0.5rem;
+    }
+    .cached-badge {
+        background-color: #28a745;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.7rem;
+    }
+    .thinking-indicator {
+        background-color: #fff3cd;
+        border-left: 4px solid #ffc107;
+        margin-right: 20%;
+        animation: pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+    .thinking-dots {
+        display: inline-block;
+    }
+    .thinking-dots span {
+        animation: blink 1.4s infinite;
+        animation-fill-mode: both;
+    }
+    .thinking-dots span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+    .thinking-dots span:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+    @keyframes blink {
+        0%, 80%, 100% { opacity: 0; }
+        40% { opacity: 1; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-chat-dots"></i> Chat with Your Data</h2>
+        <p class="text-muted">Hello, <strong>{{ username }}</strong>! Ask questions about your data.</p>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <div class="row">
+                    <div class="col-5">
+                        <label for="searchType" class="form-label mb-0">Search Type:</label>
+                        <select class="form-select form-select-sm" id="searchType">
+                            <option value="vector" selected>Vector Search</option>
+                            <option value="full text">Full Text Search</option>
+                            <option value="hybrid">Hybrid Search</option>
+                        </select>
+                    </div>
+                    <div class="col-7 text-end">
+                        <button class="btn btn-sm btn-light" onclick="clearChat()">
+                            <i class="bi bi-x-circle"></i> Clear Chat
+                        </button>
+                        <button class="btn btn-sm btn-light" onclick="clearCache()">
+                            <i class="bi bi-trash"></i> Clear Cache
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chat-container" id="chatContainer">
+                    {% for msg in chat_history %}
+                    <div class="message user-message">
+                        <strong><i class="bi bi-person"></i> You:</strong> {{ msg.user }}
+                    </div>
+                    <div class="message assistant-message">
+                        <strong><i class="bi bi-robot"></i> Assistant:</strong> {{ msg.assistant }}
+                        <div class="message-meta">
+                            <i class="bi bi-clock"></i> {{ msg.time }}ms
+                            {% if msg.cached %}<span class="cached-badge">CACHED</span>{% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="card-footer">
+                <form id="chatForm">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="userInput" placeholder="Enter your question here..." required>
+                        <button class="btn btn-primary" type="submit" id="sendBtn">
+                            <i class="bi bi-send"></i> Send
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <i class="bi bi-info-circle"></i> Tips
+            </div>
+            <div class="card-body">
+                <ul class="small">
+                    <li>Ask questions about the documents you've uploaded</li>
+                    <li>Use specific keywords for better results</li>
+                    <li>The system will search through your PostgreSQL database</li>
+                    <li>Responses are cached for faster retrieval</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('chatForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const userInput = document.getElementById('userInput').value;
+    const searchType = document.getElementById('searchType').value;
+    const sendBtn = document.getElementById('sendBtn');
+    const chatContainer = document.getElementById('chatContainer');
+    
+    if (!userInput.trim()) return;
+    
+    // Disable send button
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Sending...';
+    
+    // Add user message to chat
+    const userMsg = document.createElement('div');
+    userMsg.className = 'message user-message';
+    userMsg.innerHTML = '<strong><i class="bi bi-person"></i> You:</strong> ' + userInput;
+    chatContainer.appendChild(userMsg);
+    
+    // Add thinking indicator
+    const thinkingMsg = document.createElement('div');
+    thinkingMsg.className = 'message thinking-indicator';
+    thinkingMsg.id = 'thinkingIndicator';
+    thinkingMsg.innerHTML = `
+        <strong><i class="bi bi-robot"></i> Assistant:</strong> 
+        <span class="text-muted">
+            <i class="bi bi-hourglass-split"></i> Working on your answer
+            <span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span>
+        </span>
+    `;
+    chatContainer.appendChild(thinkingMsg);
+    
+    // Scroll to show thinking indicator
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+    
+    // Clear input
+    document.getElementById('userInput').value = '';
+    
+    try {
+        const response = await fetch('/send-message', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: userInput,
+                search_type: searchType
+            })
+        });
+        
+        const data = await response.json();
+        
+        // Remove thinking indicator
+        const thinkingIndicator = document.getElementById('thinkingIndicator');
+        if (thinkingIndicator) {
+            thinkingIndicator.remove();
+        }
+        
+        if (data.success) {
+            const assistantMsg = document.createElement('div');
+            assistantMsg.className = 'message assistant-message';
+            assistantMsg.innerHTML = `
+                <strong><i class="bi bi-robot"></i> Assistant:</strong> ${data.response}
+                <div class="message-meta">
+                    <i class="bi bi-clock"></i> ${data.time}ms
+                    ${data.cached ? '<span class="cached-badge">CACHED</span>' : ''}
+                </div>
+            `;
+            chatContainer.appendChild(assistantMsg);
+        } else {
+            const errorMsg = document.createElement('div');
+            errorMsg.className = 'message assistant-message';
+            errorMsg.innerHTML = '<strong class="text-danger"><i class="bi bi-exclamation-triangle"></i> Error:</strong> ' + data.error;
+            chatContainer.appendChild(errorMsg);
+        }
+    } catch (error) {
+        // Remove thinking indicator on error
+        const thinkingIndicator = document.getElementById('thinkingIndicator');
+        if (thinkingIndicator) {
+            thinkingIndicator.remove();
+        }
+        
+        const errorMsg = document.createElement('div');
+        errorMsg.className = 'message assistant-message';
+        errorMsg.innerHTML = '<strong class="text-danger"><i class="bi bi-exclamation-triangle"></i> Error:</strong> ' + error.message;
+        chatContainer.appendChild(errorMsg);
+    }
+    
+    // Re-enable send button
+    sendBtn.disabled = false;
+    sendBtn.innerHTML = '<i class="bi bi-send"></i> Send';
+    
+    // Scroll to bottom
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+});
+
+async function clearCache() {
+    if (!confirm('Are you sure you want to clear the cache?')) return;
+    
+    try {
+        const response = await fetch('/clear-cache', {
+            method: 'POST'
+        });
+        const data = await response.json();
+        if (data.success) {
+            alert(data.message);
+        } else {
+            alert('Error: ' + data.error);
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+async function clearChat() {
+    if (!confirm('Are you sure you want to clear all chat messages? This will remove your conversation history.')) return;
+    
+    try {
+        const response = await fetch('/clear-chat', {
+            method: 'POST'
+        });
+        const data = await response.json();
+        if (data.success) {
+            // Clear the chat container
+            const chatContainer = document.getElementById('chatContainer');
+            chatContainer.innerHTML = '';
+            
+            // Show success message temporarily
+            const successMsg = document.createElement('div');
+            successMsg.className = 'alert alert-success text-center';
+            successMsg.innerHTML = '<i class="bi bi-check-circle"></i> Chat cleared successfully!';
+            chatContainer.appendChild(successMsg);
+            
+            // Remove success message after 2 seconds
+            setTimeout(() => {
+                successMsg.remove();
+            }, 2000);
+        } else {
+            alert('Error: ' + data.error);
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+// Auto-scroll to bottom on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const chatContainer = document.getElementById('chatContainer');
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+});
+</script>
+{% endblock %}
