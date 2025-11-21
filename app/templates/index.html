@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Copilot - Document Q&A System</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 RAG Copilot</h1>
+            <p class="subtitle">Upload documents and ask questions using AI-powered search</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Upload Section -->
+            <section class="upload-section">
+                <h2>📁 Upload Documents</h2>
+                <div class="upload-area" id="uploadArea">
+                    <input type="file" id="fileInput" accept=".pdf,.docx,.doc,.pptx,.ppt,.xlsx,.xls,.csv,.json,.txt" multiple>
+                    <label for="fileInput" class="upload-label">
+                        <span class="upload-icon">📤</span>
+                        <span class="upload-text">Click to upload or drag files here</span>
+                        <span class="upload-hint">Supported: PDF, Word, PowerPoint, Excel, CSV, JSON, TXT</span>
+                    </label>
+                </div>
+                <div id="uploadStatus" class="status-message"></div>
+                
+                <div class="documents-list">
+                    <h3>Uploaded Documents</h3>
+                    <div id="documentsList" class="documents-container">
+                        <p class="empty-state">No documents uploaded yet</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Chat Section -->
+            <section class="chat-section">
+                <h2>💬 Ask Questions</h2>
+                <div class="chat-container" id="chatContainer">
+                    <div class="welcome-message">
+                        <p>👋 Welcome! Upload documents and start asking questions.</p>
+                        <p>I'll search through your documents and provide answers based on the content.</p>
+                    </div>
+                </div>
+                
+                <div class="chat-input-container">
+                    <input 
+                        type="text" 
+                        id="questionInput" 
+                        placeholder="Ask a question about your documents..."
+                        class="chat-input"
+                    >
+                    <button id="askButton" class="btn btn-primary">Send</button>
+                </div>
+                
+                <div class="chat-actions">
+                    <button id="clearCacheButton" class="btn btn-secondary">Clear Cache</button>
+                </div>
+            </section>
+        </div>
+
+        <footer>
+            <p>Built with Flask, PostgreSQL + pgvector, OpenAI, and Redis</p>
+        </footer>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
