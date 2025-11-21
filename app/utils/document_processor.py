@@ -20,33 +20,45 @@ class DocumentProcessor:
     
     @staticmethod
     def process_docx(file_path):
-        """Extract text from DOCX"""
-        doc = Document(file_path)
-        text = ""
-        for paragraph in doc.paragraphs:
-            text += paragraph.text + "\n"
-        return text
+        """Extract text from DOCX and DOC (requires proper DOC support)"""
+        try:
+            doc = Document(file_path)
+            text = ""
+            for paragraph in doc.paragraphs:
+                text += paragraph.text + "\n"
+            return text
+        except Exception as e:
+            # Fallback: DOC files may not work with python-docx
+            raise ValueError(f"Error processing Word document. Note: Legacy DOC format may not be fully supported. Consider converting to DOCX. Error: {e}")
     
     @staticmethod
     def process_pptx(file_path):
-        """Extract text from PPTX"""
-        prs = Presentation(file_path)
-        text = ""
-        for slide in prs.slides:
-            for shape in slide.shapes:
-                if hasattr(shape, "text"):
-                    text += shape.text + "\n"
-        return text
+        """Extract text from PPTX and PPT (requires proper PPT support)"""
+        try:
+            prs = Presentation(file_path)
+            text = ""
+            for slide in prs.slides:
+                for shape in slide.shapes:
+                    if hasattr(shape, "text"):
+                        text += shape.text + "\n"
+            return text
+        except Exception as e:
+            # Fallback: PPT files may not work with python-pptx
+            raise ValueError(f"Error processing PowerPoint. Note: Legacy PPT format may not be fully supported. Consider converting to PPTX. Error: {e}")
     
     @staticmethod
     def process_xlsx(file_path):
-        """Extract text from XLSX"""
-        df = pd.read_excel(file_path, sheet_name=None)
-        text = ""
-        for sheet_name, sheet_df in df.items():
-            text += f"Sheet: {sheet_name}\n"
-            text += sheet_df.to_string(index=False) + "\n\n"
-        return text
+        """Extract text from XLSX and XLS"""
+        try:
+            # pandas can handle both XLS and XLSX with openpyxl/xlrd
+            df = pd.read_excel(file_path, sheet_name=None, engine=None)
+            text = ""
+            for sheet_name, sheet_df in df.items():
+                text += f"Sheet: {sheet_name}\n"
+                text += sheet_df.to_string(index=False) + "\n\n"
+            return text
+        except Exception as e:
+            raise ValueError(f"Error processing Excel file. Ensure the file is not corrupted. Error: {e}")
     
     @staticmethod
     def process_csv(file_path):

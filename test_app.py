@@ -30,9 +30,10 @@ class TestDocumentProcessor(unittest.TestCase):
     
     def test_process_txt(self):
         """Test TXT file processing"""
+        import tempfile
         # Create a test file
-        test_file = '/tmp/test.txt'
-        with open(test_file, 'w') as f:
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
+            test_file = f.name
             f.write("This is a test document.")
         
         content = self.processor.process_file(test_file, 'txt')
@@ -44,10 +45,11 @@ class TestDocumentProcessor(unittest.TestCase):
     def test_process_json(self):
         """Test JSON file processing"""
         import json
-        test_file = '/tmp/test.json'
+        import tempfile
         test_data = {"key": "value", "number": 42}
         
-        with open(test_file, 'w') as f:
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            test_file = f.name
             json.dump(test_data, f)
         
         content = self.processor.process_file(test_file, 'json')

@@ -1,5 +1,6 @@
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from psycopg2 import ProgrammingError
 from config import Config
 
 class Database:
@@ -49,9 +50,11 @@ class Database:
                     ON document_chunks USING ivfflat (embedding vector_cosine_ops)
                     WITH (lists = 100);
                 """)
-            except Exception as e:
+            except psycopg2.ProgrammingError as e:
                 # Index might fail if not enough data, that's okay
-                print(f"Index creation skipped: {e}")
+                print(f"Index creation skipped (needs data first): {e}")
+            except Exception as e:
+                print(f"Unexpected error creating index: {e}")
             
             # Create QA cache table
             cur.execute("""

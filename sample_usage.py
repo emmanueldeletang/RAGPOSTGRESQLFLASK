@@ -63,10 +63,29 @@ def clear_cache():
 
 # Example usage
 if __name__ == "__main__":
+    import os
+    
+    # Check if example document exists
+    example_file = "example_document.txt"
+    if not os.path.exists(example_file):
+        print(f"Error: {example_file} not found.")
+        print("Please create a document to upload or use an existing file.")
+        print("\nExample: Create a simple text file")
+        print("  echo 'This is a test document about AI.' > test.txt")
+        print("  python sample_usage.py")
+        exit(1)
+    
     # 1. Upload a document
-    print("Uploading document...")
-    result = upload_document("example.pdf")
-    print(f"Upload result: {result}")
+    print(f"Uploading document: {example_file}...")
+    try:
+        result = upload_document(example_file)
+        print(f"Upload result: {result}")
+    except FileNotFoundError:
+        print(f"Error: File '{example_file}' not found. Please provide a valid file path.")
+        exit(1)
+    except Exception as e:
+        print(f"Error uploading document: {e}")
+        exit(1)
     
     # 2. Ask a question
     print("\nAsking a question...")
