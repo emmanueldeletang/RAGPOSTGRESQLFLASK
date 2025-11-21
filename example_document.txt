@@ -1,0 +1,109 @@
+# RAG Copilot - Technical Overview
+
+## Introduction
+
+This document provides technical information about RAG (Retrieval-Augmented Generation) systems and their applications in modern AI.
+
+## What is RAG?
+
+Retrieval-Augmented Generation (RAG) is an AI framework that combines the power of large language models with external knowledge retrieval. Instead of relying solely on the model's training data, RAG systems can access and reference external documents to provide more accurate and up-to-date responses.
+
+## Key Components
+
+### 1. Document Processing
+Documents are processed and converted into a format suitable for semantic search. This involves:
+- Text extraction from various file formats
+- Cleaning and preprocessing
+- Chunking into manageable segments
+
+### 2. Vector Embeddings
+Text chunks are converted into high-dimensional vector representations using embedding models. These embeddings capture semantic meaning, allowing for similarity-based search.
+
+### 3. Vector Database
+Embeddings are stored in a specialized vector database (like PostgreSQL with pgvector) that supports efficient similarity search operations.
+
+### 4. Retrieval
+When a user asks a question, the system:
+- Converts the question into an embedding
+- Searches for the most similar document chunks
+- Retrieves relevant context
+
+### 5. Generation
+Retrieved context is combined with the user's question and sent to a language model to generate a coherent, accurate answer.
+
+## Benefits of RAG
+
+1. **Accuracy**: Answers are grounded in actual documents
+2. **Transparency**: Sources can be cited
+3. **Updatability**: New information can be added without retraining
+4. **Cost-effective**: No need to fine-tune large models
+5. **Domain-specific**: Can work with specialized knowledge
+
+## Use Cases
+
+- Customer support knowledge bases
+- Internal company documentation search
+- Research paper analysis
+- Legal document review
+- Medical literature search
+- Educational content Q&A
+
+## Technical Architecture
+
+The RAG Copilot application uses:
+- **Flask**: Web framework for API and UI
+- **PostgreSQL + pgvector**: Vector database for embeddings
+- **OpenAI**: Embeddings (text-embedding-ada-002) and LLM (GPT-3.5-turbo)
+- **Redis**: Caching layer for performance
+- **Python**: Document processing libraries
+
+## Performance Optimization
+
+### Caching Strategy
+The application implements a two-tier caching system:
+1. **Redis**: Fast in-memory cache for recent queries
+2. **PostgreSQL**: Persistent cache for all answered questions
+
+This approach significantly reduces API calls and response time for repeated questions.
+
+### Chunking Strategy
+Documents are split into overlapping chunks to ensure context continuity:
+- Chunk size: 1000 characters (configurable)
+- Overlap: 200 characters (configurable)
+- Boundary detection: Prefers sentence/paragraph breaks
+
+## Security Considerations
+
+- API keys stored in environment variables
+- File upload validation and size limits
+- Input sanitization for SQL injection prevention
+- CORS configuration for API access control
+
+## Scalability
+
+The architecture supports horizontal scaling:
+- Flask app can run multiple instances behind a load balancer
+- PostgreSQL can be replicated for read-heavy workloads
+- Redis can be clustered for high availability
+
+## Future Enhancements
+
+Potential improvements include:
+- Multi-language support
+- Image and table extraction from documents
+- Custom embedding models
+- Fine-tuned LLMs for specific domains
+- User authentication and multi-tenancy
+- Conversation history and context
+- Advanced analytics and usage tracking
+
+## Conclusion
+
+RAG systems represent a powerful approach to building AI applications that require access to external knowledge. This implementation provides a solid foundation for various document-based Q&A applications.
+
+## References
+
+- OpenAI API Documentation: https://platform.openai.com/docs
+- pgvector GitHub: https://github.com/pgvector/pgvector
+- LangChain Documentation: https://docs.langchain.com
+- RAG Paper: "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks"
